@@ -6,14 +6,14 @@
     "companies": {
       "title": "Companies",
       "type": "array",
-      "description": "Company names or domains to search (e.g. 'stripe.com', 'Acme Corp').",
+      "description": "Optional. Company names or domains to search. Leave empty to search by job title only (any company).",
       "editor": "stringList",
-      "prefill": ["stripe.com", "vercel.com"]
+      "prefill": []
     },
     "decisionMakerTitles": {
       "title": "Decision maker job titles",
       "type": "array",
-      "description": "Job titles to find (e.g. Head of HR, CTO). User can add or remove from defaults.",
+      "description": "Job titles to find. Leave empty to use the default list (Head of HR, CPO, VP People, Head of Engineering, CTO, etc.).",
       "editor": "stringList",
       "prefill": [
         "Head of HR",
@@ -38,12 +38,21 @@
     "maxResultsPerCompany": {
       "title": "Max results per company",
       "type": "integer",
-      "description": "Optional cap on number of decision makers per company.",
+      "description": "When companies are provided: cap per company. Ignored in title-only mode.",
       "editor": "number",
       "default": 10,
       "minimum": 1,
       "maximum": 100
+    },
+    "maxResults": {
+      "title": "Max results (title-only mode)",
+      "type": "integer",
+      "description": "When no companies provided: max profiles to fetch from LinkedIn (title-only search).",
+      "editor": "number",
+      "default": 1000,
+      "minimum": 1,
+      "maximum": 2500
     }
   },
-  "required": ["companies", "decisionMakerTitles"]
+  "required": []
 }
