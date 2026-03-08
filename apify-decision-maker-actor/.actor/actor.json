@@ -4,9 +4,7 @@
   "title": "Decision Maker Sourcing Actor",
   "version": "0.1",
   "buildTag": "latest",
-  "meta": {
-    "templateId": "python-crawlee-playwright"
-  },
+  "dockerfile": "./Dockerfile",
   "defaultMemoryMbytes": 1024,
   "minMemoryMbytes": 512,
   "maxMemoryMbytes": 4096,
