@@ -19,12 +19,12 @@ Default job titles are tailored to buyers of feedback/trust/culture tools (e.g. 
    apify login
    ```
 
-2. From the Actor root (`apify-decision-maker-actor/`):
+2. From the repo root:
    ```bash
    apify run
    ```
 
-   You can pass input via `INPUT.json` in the Actor folder or via the CLI. Example `INPUT.json`:
+   You can pass input via `INPUT.json` in the repo root or via the CLI. Example `INPUT.json`:
 
    ```json
    {
@@ -35,7 +35,7 @@ Default job titles are tailored to buyers of feedback/trust/culture tools (e.g. 
    }
    ```
 
-3. To run with the Apify SDK’s default input handling (e.g. from Apify Console), run the main script:
+3. To run with the Apify SDK's default input handling (e.g. from Apify Console), run the main script:
    ```bash
    python src/main.py
    ```
@@ -43,13 +43,13 @@ Default job titles are tailored to buyers of feedback/trust/culture tools (e.g. 
 
 ## Deploy to Apify
 
-1. **Via Apify CLI** (from the Actor root):
+1. **Via Apify CLI** (from the repo root):
    ```bash
    apify push
    ```
    This builds and deploys the Actor to your Apify account.
 
-2. **Via GitHub:** Connect your repo to Apify (Settings → Integrations → GitHub). Put the Actor in a folder or branch that Apify is configured to build from. Apify will use the Dockerfile and `.actor/actor.json` in that path.
+2. **Via GitHub:** Connect your repo to Apify (Settings → Integrations → GitHub). With the Actor at the repo root, Apify will use the Dockerfile and `.actor/actor.json` from the root. No build context directory change needed.
 
 ## Requirements
 
@@ -80,8 +80,8 @@ Each record contains:
 
 ## Notes
 
-- **Costs:** This Actor calls another Store Actor ([Company Decision Maker Finder](https://apify.com/consummate_mandala/company-decision-maker-finder)). You pay for both this run and the child Actor’s usage. Use `maxResultsPerCompany` and small company lists when testing.
-- **LinkedIn:** The child Actor may use LinkedIn-style data. Use it in line with Apify’s and the Actor’s terms and compliance.
+- **Costs:** This Actor calls another Store Actor ([Company Decision Maker Finder](https://apify.com/consummate_mandala/company-decision-maker-finder)). You pay for both this run and the child Actor's usage. Use `maxResultsPerCompany` and small company lists when testing.
+- **LinkedIn:** The child Actor may use LinkedIn-style data. Use it in line with Apify's and the Actor's terms and compliance.
 - **Emails:** Emails are often estimated from common patterns; verify before using for outreach.
 
 ## License
