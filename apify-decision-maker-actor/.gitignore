@@ -1,0 +1,17 @@
+# Apify local run
+.actor/state/
+storage/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

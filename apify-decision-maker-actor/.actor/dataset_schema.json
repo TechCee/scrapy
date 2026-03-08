@@ -1,0 +1,46 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "email": { "type": "string" },
+      "jobTitle": { "type": "string" },
+      "company": { "type": "string" },
+      "companyDomain": { "type": "string" },
+      "region": { "type": "string" },
+      "sourceUrl": { "type": "string" },
+      "source": { "type": "string" }
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "transformation": {
+        "fields": [
+          "name",
+          "email",
+          "jobTitle",
+          "company",
+          "companyDomain",
+          "region",
+          "sourceUrl",
+          "source"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "name": { "label": "Name", "format": "text" },
+          "email": { "label": "Email", "format": "text" },
+          "jobTitle": { "label": "Job title", "format": "text" },
+          "company": { "label": "Company", "format": "text" },
+          "companyDomain": { "label": "Company domain", "format": "text" },
+          "region": { "label": "Region", "format": "text" },
+          "sourceUrl": { "label": "Source URL", "format": "link" },
+          "source": { "label": "Source", "format": "text" }
+        }
+      }
+    }
+  }
+}

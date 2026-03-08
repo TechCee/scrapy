@@ -1,0 +1,6 @@
+{
+  "companies": ["stripe.com", "vercel.com"],
+  "decisionMakerTitles": ["Head of HR", "CTO", "VP Engineering"],
+  "regions": [],
+  "maxResultsPerCompany": 5
+}

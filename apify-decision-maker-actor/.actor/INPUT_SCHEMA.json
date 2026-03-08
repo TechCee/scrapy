@@ -1,0 +1,49 @@
+{
+  "title": "Decision Maker Sourcing Actor",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "companies": {
+      "title": "Companies",
+      "type": "array",
+      "description": "Company names or domains to search (e.g. 'stripe.com', 'Acme Corp').",
+      "editor": "stringList",
+      "prefill": ["stripe.com", "vercel.com"]
+    },
+    "decisionMakerTitles": {
+      "title": "Decision maker job titles",
+      "type": "array",
+      "description": "Job titles to find (e.g. Head of HR, CTO). User can add or remove from defaults.",
+      "editor": "stringList",
+      "prefill": [
+        "Head of HR",
+        "Chief People Officer",
+        "VP People",
+        "Head of People",
+        "Head of Engineering",
+        "VP Engineering",
+        "CTO",
+        "Head of Learning & Development",
+        "Director of People & Culture",
+        "Head of Employee Experience"
+      ]
+    },
+    "regions": {
+      "title": "Regions",
+      "type": "array",
+      "description": "Optional. Restrict to these countries/regions (e.g. 'United States', 'United Kingdom'). Leave empty for global.",
+      "editor": "stringList",
+      "prefill": []
+    },
+    "maxResultsPerCompany": {
+      "title": "Max results per company",
+      "type": "integer",
+      "description": "Optional cap on number of decision makers per company.",
+      "editor": "number",
+      "default": 10,
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "required": ["companies", "decisionMakerTitles"]
+}
