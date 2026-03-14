@@ -25,7 +25,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check initial session
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      const hash = window.location.hash || "";
+      const hasAuthHash = hash.includes("access_token") || hash.includes("refresh_token");
+      const isAuthRoute = path === "/auth/callback" || path.startsWith("/auth/set-password");
+      if (hasAuthHash && !isAuthRoute) {
+        window.location.replace("/auth/callback" + (window.location.search || "") + hash);
+        return;
+      }
+    }
+
     const initSession = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
