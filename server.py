@@ -43,6 +43,7 @@ def _cors_headers():
         ".railway.app",
         ".up.railway.app",
         ".fly.dev",
+        ".onrender.com",
         "trustle.online",
     ]
     if origin and any(pattern in origin for pattern in allowed_patterns):
