@@ -1,3 +1,5 @@
+import { getAccessToken } from "./supabase";
+
 // Use same-origin so Next.js rewrites proxy to Flask (avoids CORS)
 const getApiBase = () =>
   typeof window !== "undefined" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
@@ -6,14 +8,35 @@ const getApiBase = () =>
 const getBackendBase = () =>
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
+/** Get authorization headers with Supabase JWT token */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const token = await getAccessToken();
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
+}
+
+/** Fetch with authentication */
+async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const authHeaders = await getAuthHeaders();
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...authHeaders,
+    },
+  });
+}
+
 export async function getConfig() {
-  const res = await fetch(`${getApiBase()}/api/config`);
+  const res = await fetchWithAuth(`${getApiBase()}/api/config`);
   if (!res.ok) throw new Error("Failed to fetch config");
   return res.json();
 }
 
 export async function getRuns() {
-  const res = await fetch(`${getApiBase()}/api/runs?limit=50`);
+  const res = await fetchWithAuth(`${getApiBase()}/api/runs?limit=50`);
   if (!res.ok) throw new Error("Failed to fetch runs");
   const data = await res.json();
   return data.runs as { id: string; started_at: string; job_titles: string; saved_count: number; with_email_count: number }[];
@@ -44,7 +67,7 @@ export async function getContacts(params: FilterParams) {
   if (params.responded) sp.set("responded", params.responded);
   if (params.unemployed) sp.set("unemployed", params.unemployed);
   if (params.has_source) sp.set("has_source", params.has_source);
-  const res = await fetch(`${getApiBase()}/api/contacts?${sp.toString()}`);
+  const res = await fetchWithAuth(`${getApiBase()}/api/contacts?${sp.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch contacts");
   const data = await res.json();
   return data.contacts as Contact[];
@@ -62,7 +85,7 @@ export async function getContactStats(params: FilterParams): Promise<ContactStat
   if (params.responded) sp.set("responded", params.responded);
   if (params.unemployed) sp.set("unemployed", params.unemployed);
   if (params.has_source) sp.set("has_source", params.has_source);
-  const res = await fetch(`${getApiBase()}/api/contacts/stats?${sp.toString()}`);
+  const res = await fetchWithAuth(`${getApiBase()}/api/contacts/stats?${sp.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch stats");
   return res.json() as Promise<ContactStats>;
 }
@@ -108,9 +131,10 @@ export async function patchContact(
     source_url?: string;
   }
 ) {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${getApiBase()}/api/contacts/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -128,9 +152,10 @@ export async function createContact(payload: {
   run_id?: string;
   source_url?: string;
 }): Promise<Contact> {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${getApiBase()}/api/contacts`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -142,7 +167,11 @@ export async function createContact(payload: {
 }
 
 export async function deleteContact(id: number) {
-  const res = await fetch(`${getApiBase()}/api/contacts/${id}`, { method: "DELETE" });
+  const authHeaders = await getAuthHeaders();
+  const res = await fetch(`${getApiBase()}/api/contacts/${id}`, { 
+    method: "DELETE",
+    headers: authHeaders,
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { error?: string }).error || "Delete failed");
@@ -162,10 +191,11 @@ const ENRICH_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 export async function enrichContacts(contactIds: number[]): Promise<EnrichResult> {
   const ac = new AbortController();
   const timeoutId = setTimeout(() => ac.abort(), ENRICH_TIMEOUT_MS);
+  const authHeaders = await getAuthHeaders();
   try {
     const res = await fetch(`${getBackendBase()}/api/contacts/enrich`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify({ contact_ids: contactIds }),
       signal: ac.signal,
     });
@@ -216,9 +246,10 @@ export async function runSearchStream(
   onEvent: (event: { type: string; message?: string; level?: string; saved?: number; with_email?: number; errors?: string[]; run_id?: string | null }) => void,
   linkedinOnly?: boolean
 ) {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${getApiBase()}/api/run/stream`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     body: JSON.stringify({
       job_titles: jobTitles.length ? jobTitles.join("\n") : "",
       hunter_enabled: hunterEnabled,
@@ -272,8 +303,10 @@ export type ImportResult = {
 export async function uploadImportFile(file: File): Promise<ImportResult & { error?: string }> {
   const form = new FormData();
   form.append("file", file);
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${getApiBase()}/api/imports/upload`, {
     method: "POST",
+    headers: authHeaders,
     body: form,
   });
   const data = (await res.json()) as ImportResult & { error?: string };
@@ -290,8 +323,10 @@ export async function uploadImportFileWithProgress(
 ): Promise<ImportResult & { error?: string }> {
   const form = new FormData();
   form.append("file", file);
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${getApiBase()}/api/imports/upload?stream=1`, {
     method: "POST",
+    headers: authHeaders,
     body: form,
   });
   if (!res.ok) {

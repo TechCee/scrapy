@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +17,7 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
 
-    const result = await login(username, password);
+    const result = await login(email, password);
     
     if (!result.success) {
       setError(result.error || "Login failed");
@@ -64,26 +64,26 @@ export default function LoginPage() {
           {/* Card Body */}
           <div className="px-8 py-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Username Field */}
+              {/* Email Field */}
               <div className="space-y-2">
-                <label htmlFor="username" className="block text-sm font-semibold text-[var(--ink)]">
-                  Username
+                <label htmlFor="email" className="block text-sm font-semibold text-[var(--ink)]">
+                  Email
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                     <svg className="h-5 w-5 text-[var(--tan)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="block w-full rounded-xl border-2 border-[var(--sand)]/60 bg-[var(--warm-white)] py-3.5 pl-12 pr-4 text-sm text-[var(--ink)] placeholder-[var(--tan)] transition-all duration-200 hover:border-[var(--sand)] focus:border-[var(--brown)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--brown)]/10"
-                    placeholder="Enter your username"
+                    placeholder="Enter your email"
                     required
-                    autoComplete="username"
+                    autoComplete="email"
                   />
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isSubmitting || !username || !password}
+                disabled={isSubmitting || !email || !password}
                 className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[var(--brown)] to-[var(--ink)] px-4 py-4 text-sm font-semibold text-white shadow-lg shadow-[var(--brown)]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--brown)]/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">

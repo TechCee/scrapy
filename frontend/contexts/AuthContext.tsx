@@ -2,31 +2,64 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { supabase, signInWithEmail, signOut, getCurrentUser } from "@/lib/supabase";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  user: User | null;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_KEY = "trustle_auth";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const stored = localStorage.getItem(AUTH_KEY);
-    if (stored === "true") {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
+    // Check initial session
+    const initSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.error("Error checking session:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setIsAuthenticated(!!newSession);
+
+        if (event === "SIGNED_OUT") {
+          router.push("/login");
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && pathname !== "/login") {
@@ -34,36 +67,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, isLoading, pathname, router]);
 
-  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        localStorage.setItem(AUTH_KEY, "true");
+      const data = await signInWithEmail(email, password);
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.user);
         setIsAuthenticated(true);
         router.push("/contacts");
         return { success: true };
-      } else {
-        return { success: false, error: data.error || "Login failed" };
       }
-    } catch (err) {
-      return { success: false, error: "Network error. Please try again." };
+      return { success: false, error: "Login failed" };
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      return { success: false, error: error.message || "Login failed" };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem(AUTH_KEY);
+  const logout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    setSession(null);
+    setUser(null);
     setIsAuthenticated(false);
     router.push("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, session, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

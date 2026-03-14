@@ -15,6 +15,7 @@ from flask import Flask, render_template, request, jsonify, Response, stream_wit
 from openpyxl import load_workbook
 
 from backend import db
+from backend.auth import require_auth, get_current_user
 from backend.hunter import _get_api_key, company_to_domain, find_email
 from backend.pipeline import run_pipeline, run_pipeline_events
 
@@ -50,7 +51,7 @@ def _cors_headers():
         return {
             "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
         }
     return {}
 
@@ -66,42 +67,23 @@ def _parse_bool_filter(val):
     return None
 
 
-@app.route("/api/auth/login", methods=["POST", "OPTIONS"])
-def api_auth_login():
-    """Authenticate user with username and password."""
+@app.route("/api/auth/verify", methods=["GET", "OPTIONS"])
+def api_auth_verify():
+    """Verify if the current session is valid using Supabase JWT."""
     if request.method == "OPTIONS":
         resp = jsonify({})
         resp.headers.update(_cors_headers())
         return resp
     
-    data = request.get_json() or {}
-    username = data.get("username", "").strip()
-    password = data.get("password", "")
-    
-    expected_username = os.environ.get("PORTAL_USERNAME", "admin")
-    expected_password = os.environ.get("PORTAL_PASSWORD", "trustle2024")
-    
-    if username == expected_username and password == expected_password:
-        resp = jsonify({"success": True, "message": "Login successful"})
+    user = get_current_user()
+    if user:
+        resp = jsonify({"valid": True, "user": user})
         resp.headers.update(_cors_headers())
         return resp
     else:
-        resp = jsonify({"success": False, "error": "Invalid username or password"})
+        resp = jsonify({"valid": False, "error": "Invalid or missing token"})
         resp.headers.update(_cors_headers())
         return resp, 401
-
-
-@app.route("/api/auth/verify", methods=["GET", "OPTIONS"])
-def api_auth_verify():
-    """Verify if the current session is valid (for client-side token validation)."""
-    if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers.update(_cors_headers())
-        return resp
-    
-    resp = jsonify({"valid": True})
-    resp.headers.update(_cors_headers())
-    return resp
 
 
 @app.before_request
@@ -123,6 +105,7 @@ def index():
 
 
 @app.route("/api/run", methods=["POST"])
+@require_auth
 def api_run():
     data = request.get_json() or {}
     titles_raw = data.get("job_titles") or data.get("jobTitles") or ""
@@ -156,6 +139,7 @@ def _stream_run_events():
 
 
 @app.route("/api/run/stream", methods=["POST"])
+@require_auth
 def api_run_stream():
     return Response(
         stream_with_context(_stream_run_events()),
@@ -165,11 +149,13 @@ def api_run_stream():
 
 
 @app.route("/api/config")
+@require_auth
 def api_config():
     return jsonify({"hunter_configured": bool(_get_api_key())})
 
 
 @app.route("/api/runs")
+@require_auth
 def api_runs():
     limit = min(int(request.args.get("limit", 50)), 100)
     rows = db.list_runs(limit=limit)
@@ -177,6 +163,7 @@ def api_runs():
 
 
 @app.route("/api/contacts", methods=["GET", "POST"])
+@require_auth
 def api_contacts():
     if request.method == "POST":
         data = request.get_json() or {}
@@ -230,6 +217,7 @@ def api_contacts():
 
 
 @app.route("/api/contacts/stats")
+@require_auth
 def api_contacts_stats():
     """Return aggregate stats for contacts with same query params as GET /api/contacts."""
     job_title = request.args.get("job_title", "").strip() or None
@@ -275,6 +263,7 @@ def _first_last(name):
 
 
 @app.route("/api/contacts/enrich", methods=["POST"])
+@require_auth
 def api_contacts_enrich():
     """Bulk enrich contacts without email using Hunter.io. Body: { contact_ids: [1,2,3] } or { filter: "no_email" }."""
     data = request.get_json() or {}
@@ -325,6 +314,7 @@ def api_contacts_enrich():
 
 
 @app.route("/api/contacts/<int:contact_id>", methods=["PATCH", "DELETE"])
+@require_auth
 def api_contact_by_id(contact_id):
     if request.method == "DELETE":
         deleted = db.delete_contact(contact_id)
@@ -702,6 +692,7 @@ def _stream_import_xlsx(file_stream):
 
 
 @app.route("/api/imports/upload", methods=["POST"])
+@require_auth
 def api_imports_upload():
     """Accept .xlsx file with flexible column detection. If stream=1, return NDJSON stream with progress; else return JSON result."""
     if "file" not in request.files:
@@ -727,6 +718,7 @@ def api_imports_upload():
 
 
 @app.route("/api/export")
+@require_auth
 def api_export():
     job_title = request.args.get("job_title", "").strip() or None
     company = request.args.get("company", "").strip() or None
