@@ -8,12 +8,12 @@ import Sidebar from "@/components/Sidebar";
 function MainWithPadding({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebar();
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
-  
-  if (isLoginPage) {
+  const isPublicPage = pathname === "/login" || pathname?.startsWith("/auth/");
+
+  if (isPublicPage) {
     return <main className="min-h-screen">{children}</main>;
   }
-  
+
   return (
     <main className={`min-h-screen transition-[padding-left] duration-200 ${collapsed ? "pl-16" : "pl-64"}`}>
       {children}
@@ -24,7 +24,7 @@ function MainWithPadding({ children }: { children: React.ReactNode }) {
 function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated, isLoading } = useAuth();
-  const isLoginPage = pathname === "/login";
+  const isPublicPage = pathname === "/login" || pathname?.startsWith("/auth/");
 
   if (isLoading) {
     return (
@@ -34,7 +34,7 @@ function AuthenticatedShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (isLoginPage) {
+  if (isPublicPage) {
     return <main className="min-h-screen">{children}</main>;
   }
 

@@ -62,7 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && pathname !== "/login") {
+    const isAuthRoute = pathname === "/login" || pathname?.startsWith("/auth/");
+    if (!isLoading && !isAuthenticated && !isAuthRoute) {
       router.push("/login");
     }
   }, [isAuthenticated, isLoading, pathname, router]);
