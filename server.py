@@ -42,6 +42,7 @@ def _cors_headers():
         "127.0.0.1",
         ".railway.app",
         ".up.railway.app",
+        ".fly.dev",
         "trustle.online",
     ]
     if origin and any(pattern in origin for pattern in allowed_patterns):

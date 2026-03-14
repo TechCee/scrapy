@@ -1,14 +1,15 @@
 """
 SQLite schema and access for contacts and runs.
 """
+import os
 import re
 import sqlite3
 import uuid
 from pathlib import Path
 
-# DB path: data/contacts.db at repo root
+# DB path: supports DATA_PATH env var for production (e.g., Fly.io volume)
 APP_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = APP_ROOT / "data"
+DATA_DIR = Path(os.environ.get("DATA_PATH", APP_ROOT / "data"))
 DB_PATH = DATA_DIR / "contacts.db"
 
 
