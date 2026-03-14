@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBackendStatus } from "@/contexts/BackendStatusContext";
 
 const nav = [
   {
@@ -51,6 +52,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebar();
   const { logout } = useAuth();
+  const { status, retry } = useBackendStatus();
 
   return (
     <aside
@@ -130,7 +132,72 @@ export default function Sidebar() {
         })}
       </div>
       
-      <div className="border-t border-[var(--brown)]/30 p-3">
+      <div className="border-t border-[var(--brown)]/30 p-3 space-y-2">
+        {status !== "idle" && (
+          <div
+            role={status === "offline" && collapsed ? "button" : undefined}
+            tabIndex={status === "offline" && collapsed ? 0 : undefined}
+            onClick={status === "offline" && collapsed ? retry : undefined}
+            onKeyDown={
+              status === "offline" && collapsed
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      retry();
+                    }
+                  }
+                : undefined
+            }
+            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs ${
+              collapsed ? "justify-center" : ""
+            } ${status === "offline" && collapsed ? "cursor-pointer hover:bg-[var(--brown)]/30" : ""} ${
+              status === "online"
+                ? "text-emerald-400"
+                : status === "offline"
+                  ? "text-amber-400"
+                  : "text-[var(--tan)]"
+            }`}
+            title={
+              status === "checking"
+                ? "Checking backend…"
+                : status === "online"
+                  ? "Backend connected"
+                  : status === "offline"
+                    ? collapsed
+                      ? "Backend offline – click to retry"
+                      : "Backend offline or starting"
+                    : undefined
+            }
+          >
+            {status === "checking" && (
+              <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-current" aria-hidden />
+            )}
+            {status === "online" && (
+              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+            )}
+            {status === "offline" && (
+              <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
+            )}
+            {!collapsed && (
+              <>
+                {status === "checking" && <span>Checking…</span>}
+                {status === "online" && <span>Backend connected</span>}
+                {status === "offline" && (
+                  <span className="flex items-center gap-2">
+                    <span>Backend offline</span>
+                    <button
+                      type="button"
+                      onClick={retry}
+                      className="rounded bg-amber-500/20 px-1.5 py-0.5 text-amber-300 hover:bg-amber-500/30"
+                    >
+                      Retry
+                    </button>
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        )}
         <button
           type="button"
           onClick={logout}

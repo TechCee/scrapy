@@ -99,6 +99,12 @@ def add_cors(resp):
     return resp
 
 
+@app.route("/api/health", methods=["GET"])
+def api_health():
+    """Lightweight liveness check (no auth). Used by the UI to show backend status."""
+    return jsonify({"status": "ok"})
+
+
 @app.route("/")
 def index():
     return render_template("index.html", default_titles="\n".join(DEFAULT_TITLES))

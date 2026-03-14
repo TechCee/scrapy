@@ -503,8 +503,16 @@ export default function ContactsPage() {
             <span className="text-red-500" aria-hidden>
               ✕
             </span>
-            {error}
-            <span className="text-red-600">Make sure the backend is running (python server.py on port 5000).</span>
+            <span>{error}</span>
+            {typeof window !== "undefined" && (
+              <span className="text-red-600">
+                {error.includes("Session expired")
+                  ? "Sign out and log in again to refresh your session."
+                  : window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+                    ? "Make sure the backend is running (python server.py on port 5000)."
+                    : "The backend may be starting—try again in a moment. If it persists, check that the API URL is set correctly for this environment."}
+              </span>
+            )}
           </div>
         )}
 

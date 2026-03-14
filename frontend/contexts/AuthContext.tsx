@@ -3,7 +3,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase, signInWithEmail, signOut, getCurrentUser } from "@/lib/supabase";
+import { getConfig } from "@/lib/api";
 import type { User, Session } from "@supabase/supabase-js";
+
+/** Fire a single request to the backend to wake it (e.g. on Render cold start). Fire-and-forget. */
+function prewakeBackend() {
+  getConfig().catch(() => {});
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -43,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(currentSession);
           setUser(currentSession.user);
           setIsAuthenticated(true);
+          prewakeBackend();
         }
       } catch (err) {
         console.error("Error checking session:", err);
@@ -85,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(data.session);
         setUser(data.user);
         setIsAuthenticated(true);
+        prewakeBackend();
         router.push("/contacts");
         return { success: true };
       }

@@ -29,6 +29,16 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
   });
 }
 
+/** Check if the backend is reachable (no auth). Returns true if GET /api/health returns 200. */
+export async function checkBackendHealth(): Promise<boolean> {
+  try {
+    const res = await fetch(`${getApiBase()}/api/health`);
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function getConfig() {
   const res = await fetchWithAuth(`${getApiBase()}/api/config`);
   if (!res.ok) throw new Error("Failed to fetch config");
@@ -68,7 +78,11 @@ export async function getContacts(params: FilterParams) {
   if (params.unemployed) sp.set("unemployed", params.unemployed);
   if (params.has_source) sp.set("has_source", params.has_source);
   const res = await fetchWithAuth(`${getApiBase()}/api/contacts?${sp.toString()}`);
-  if (!res.ok) throw new Error("Failed to fetch contacts");
+  if (!res.ok) {
+    const err = new Error(res.status === 401 ? "Session expired. Please log in again." : "Failed to fetch contacts") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
   const data = await res.json();
   return data.contacts as Contact[];
 }
@@ -86,7 +100,11 @@ export async function getContactStats(params: FilterParams): Promise<ContactStat
   if (params.unemployed) sp.set("unemployed", params.unemployed);
   if (params.has_source) sp.set("has_source", params.has_source);
   const res = await fetchWithAuth(`${getApiBase()}/api/contacts/stats?${sp.toString()}`);
-  if (!res.ok) throw new Error("Failed to fetch stats");
+  if (!res.ok) {
+    const err = new Error(res.status === 401 ? "Session expired. Please log in again." : "Failed to fetch stats") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
   return res.json() as Promise<ContactStats>;
 }
 

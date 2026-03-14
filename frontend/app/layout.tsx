@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Source_Sans_3, JetBrains_Mono } from "next/font/google";
 import AppShell from "@/components/AppShell";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { BackendStatusProvider } from "@/contexts/BackendStatusContext";
 import "./globals.css";
 
 const sourceSans = Source_Sans_3({
@@ -29,7 +30,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${sourceSans.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
         <AuthProvider>
-          <AppShell>{children}</AppShell>
+          <BackendStatusProvider>
+            <AppShell>{children}</AppShell>
+          </BackendStatusProvider>
         </AuthProvider>
       </body>
     </html>
