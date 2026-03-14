@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { verifyInviteAndSetPassword } from "@/lib/supabase";
+import { supabase, verifyInviteAndSetPassword } from "@/lib/supabase";
 
 function SetPasswordForm() {
   const router = useRouter();
@@ -13,13 +13,20 @@ function SetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [validToken, setValidToken] = useState<boolean | null>(null);
+  const [mode, setMode] = useState<"loading" | "token" | "from_invite" | "invalid">("loading");
 
   const tokenHash = searchParams.get("token_hash");
+  const fromInvite = searchParams.get("from_invite") === "1";
 
   useEffect(() => {
-    setValidToken(!!tokenHash);
-  }, [tokenHash]);
+    if (fromInvite) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setMode(session ? "from_invite" : "invalid");
+      });
+      return;
+    }
+    setMode(tokenHash ? "token" : "invalid");
+  }, [tokenHash, fromInvite]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,13 +39,18 @@ function SetPasswordForm() {
       setError("Password must be at least 6 characters");
       return;
     }
-    if (!tokenHash) {
-      setError("Invalid or expired link");
-      return;
-    }
     setIsSubmitting(true);
     try {
-      await verifyInviteAndSetPassword(tokenHash, password);
+      if (mode === "from_invite") {
+        const { error: updateError } = await supabase.auth.updateUser({ password });
+        if (updateError) throw updateError;
+      } else if (mode === "token" && tokenHash) {
+        await verifyInviteAndSetPassword(tokenHash, password);
+      } else {
+        setError("Invalid or expired link");
+        setIsSubmitting(false);
+        return;
+      }
       router.replace("/contacts");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to set password";
@@ -48,7 +60,7 @@ function SetPasswordForm() {
     }
   };
 
-  if (validToken === null) {
+  if (mode === "loading") {
     return (
       <div className="flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--brown)] border-t-transparent" />
@@ -56,7 +68,7 @@ function SetPasswordForm() {
     );
   }
 
-  if (!tokenHash) {
+  if (mode === "invalid") {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/95 p-8 text-center">
         <p className="text-[var(--ink)]">Invalid or expired invite link. Please request a new one.</p>

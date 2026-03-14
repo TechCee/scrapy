@@ -19,7 +19,10 @@ export default function AuthCallbackPage() {
 
       const hash = window.location.hash?.slice(1);
       const tokenHash = searchParams.get("token_hash");
-      const type = searchParams.get("type");
+      const typeQuery = searchParams.get("type");
+      const hashParams = hash ? new URLSearchParams(hash) : null;
+      const typeFromHash = hashParams?.get("type");
+      const type = typeQuery ?? typeFromHash ?? "";
 
       if (hash) {
         const ok = await setSessionFromHash();
@@ -27,7 +30,15 @@ export default function AuthCallbackPage() {
         if (ok) {
           setStatus("redirecting");
           window.history.replaceState(null, "", window.location.pathname);
-          router.replace("/contacts");
+          if (type === "invite") {
+            router.replace("/auth/set-password?from_invite=1");
+            return;
+          }
+          if (type === "recovery" || type === "magiclink") {
+            router.replace("/contacts");
+            return;
+          }
+          router.replace("/auth/set-password?from_invite=1");
           return;
         }
       }
