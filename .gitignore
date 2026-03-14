@@ -1,7 +1,3 @@
-# Apify local run
-.actor/state/
-storage/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -9,6 +5,9 @@ __pycache__/
 venv/
 .env
 *.egg-info/
+
+# Local data
+data/
 
 # IDE
 .idea/

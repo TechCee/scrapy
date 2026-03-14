@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decision Maker Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --accent-light: #eef2ff;
+      --success: #059669;
+      --success-bg: #d1fae5;
+      --error: #dc2626;
+      --error-bg: #fee2e2;
+      --warn-bg: #fef3c7;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .app-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+    }
+    .app-bar .wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+    .app-bar h1 { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .app-bar p { margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted); }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 2rem; }
+
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      background: var(--warn-bg);
+      color: #92400e;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title { margin: 0 0 1.25rem; font-size: 1.1rem; font-weight: 600; color: var(--text); }
+
+    label { display: block; font-weight: 500; margin-bottom: 0.4rem; color: var(--text); font-size: 0.9rem; }
+    input[type="text"], input[type="email"], textarea, select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--surface);
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    textarea { min-height: 100px; resize: vertical; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.55rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.05s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--bg); }
+    .btn-ghost { background: transparent; color: var(--text-muted); padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+    .btn-danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
+    .btn-danger:hover { background: var(--error-bg); }
+
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; cursor: pointer; }
+    .checkbox-row input { width: auto; }
+
+    #status {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      display: none;
+    }
+    #status.info { background: var(--accent-light); color: var(--accent-hover); }
+    #status.success { background: var(--success-bg); color: var(--success); }
+    #status.error { background: var(--error-bg); color: var(--error); }
+
+    .log-box {
+      margin-top: 1rem;
+    }
+    .log-toggle { margin-bottom: 0.5rem; }
+    .run-log {
+      height: 200px;
+      overflow-y: auto;
+      font-family: 'SF Mono', ui-monospace, monospace;
+      font-size: 12px;
+      padding: 1rem;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: var(--radius-sm);
+      line-height: 1.5;
+    }
+    .run-log .line { margin: 0.2rem 0; }
+    .run-log .line.error { color: #fca5a5; }
+    .run-log.hidden { display: none; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+      margin-bottom: 1.25rem;
+    }
+    .toolbar .g { min-width: 140px; max-width: 200px; }
+    .toolbar .g label { margin-bottom: 0.3rem; }
+    .toolbar-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+    .table-scroll { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    .table-scroll table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; }
+    .table-scroll col.name { width: 12%; }
+    .table-scroll col.email { width: 18%; }
+    .table-scroll col.job-title { width: 18%; }
+    .table-scroll col.company { width: 14%; }
+    .table-scroll col.added { width: 11%; }
+    .table-scroll col.source { width: 8%; }
+    .table-scroll col.actions { width: 11%; }
+    .table-scroll th {
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .table-scroll td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      overflow: hidden;
+    }
+    .table-scroll td .value,
+    .table-scroll td.editable-cell { overflow: hidden; text-overflow: ellipsis; }
+    .table-scroll tbody tr:last-child td { border-bottom: none; }
+    .table-scroll tbody tr:hover { background: #f8fafc; }
+    .table-scroll tbody tr:nth-child(even) { background: #fafafa; }
+    .table-scroll tbody tr:nth-child(even):hover { background: #f1f5f9; }
+    .empty-cell { color: var(--text-muted); font-style: italic; }
+
+    .editable-cell { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; min-width: 0; }
+    .editable-cell .value { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .editable-cell .edit-link { flex-shrink: 0; }
+    .editable-cell input { width: 100%; min-width: 8rem; margin: 0; padding: 0.35rem 0.5rem; font-size: 0.85rem; }
+
+    .actions-cell { white-space: nowrap; }
+
+    .empty-state { text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <header class="app-bar">
+    <div class="wrap">
+      <h1>Decision Maker Finder</h1>
+      <p>Search by job title, find people and emails. All data stays on your machine.</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="hunter_warning" class="alert" style="display: none;">
+      Add <strong>HUNTER_API_KEY</strong> to your <code>.env</code> file to find emails automatically.
+    </div>
+
+    <section class="card">
+      <h2 class="card-title">New search</h2>
+      <label for="job_titles">Job titles (one per line)</label>
+      <textarea id="job_titles" placeholder="Head of HR&#10;CTO&#10;VP Engineering" rows="4">{{ default_titles }}</textarea>
+      <div class="checkbox-row">
+        <input type="checkbox" id="hunter_enabled" checked>
+        <label for="hunter_enabled" style="margin: 0;">Use Hunter.io to find emails</label>
+      </div>
+      <p style="margin-top: 1.25rem; margin-bottom: 0;">
+        <button type="button" id="run_btn" class="btn btn-primary">Run search</button>
+      </p>
+      <div id="status"></div>
+      <div class="log-box">
+        <p class="log-toggle">
+          <button type="button" id="log_toggle" class="btn btn-ghost">Show log</button>
+        </p>
+        <div id="run_log" class="run-log hidden" aria-live="polite">No run yet.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Contacts</h2>
+      <div class="toolbar">
+        <div class="g">
+          <label for="filter_job_title">Job title</label>
+          <input type="text" id="filter_job_title" placeholder="Filter">
+        </div>
+        <div class="g">
+          <label for="filter_company">Company</label>
+          <input type="text" id="filter_company" placeholder="Filter">
+        </div>
+        <div class="g">
+          <label for="filter_has_email">Has email</label>
+          <select id="filter_has_email">
+            <option value="">All</option>
+            <option value="1" selected>Yes</option>
+          </select>
+        </div>
+        <div class="g">
+          <label for="filter_run">Run</label>
+          <select id="filter_run">
+            <option value="">All runs</option>
+          </select>
+        </div>
+        <div class="toolbar-actions">
+          <button type="button" id="apply_filters" class="btn btn-outline">Apply</button>
+          <a href="#" id="export_btn" class="btn btn-outline">Export CSV</a>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <colgroup>
+            <col class="name"><col class="email"><col class="job-title"><col class="company"><col class="added"><col class="source"><col class="actions">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Job title</th>
+              <th>Company</th>
+              <th>Added</th>
+              <th>Source</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="contacts_tbody">
+            <tr><td colspan="7" class="empty-state">No contacts yet. Run a search above.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const runBtn = document.getElementById('run_btn');
+    const statusEl = document.getElementById('status');
+    const runLogEl = document.getElementById('run_log');
+    const logToggle = document.getElementById('log_toggle');
+    const jobTitlesEl = document.getElementById('job_titles');
+    const hunterEnabledEl = document.getElementById('hunter_enabled');
+    const tbody = document.getElementById('contacts_tbody');
+    const filterJobTitle = document.getElementById('filter_job_title');
+    const filterCompany = document.getElementById('filter_company');
+    const filterHasEmail = document.getElementById('filter_has_email');
+    const filterRun = document.getElementById('filter_run');
+    const applyFiltersBtn = document.getElementById('apply_filters');
+    const exportBtn = document.getElementById('export_btn');
+    const hunterWarning = document.getElementById('hunter_warning');
+
+    logToggle.addEventListener('click', function() {
+      const isHidden = runLogEl.classList.toggle('hidden');
+      logToggle.textContent = isHidden ? 'Show log' : 'Hide log';
+    });
+
+    function setStatus(msg, type) {
+      statusEl.textContent = msg;
+      statusEl.className = type || 'info';
+      statusEl.style.display = msg ? 'block' : 'none';
+    }
+
+    function buildExportUrl() {
+      const params = new URLSearchParams();
+      if (filterJobTitle.value) params.set('job_title', filterJobTitle.value);
+      if (filterCompany.value) params.set('company', filterCompany.value);
+      if (filterHasEmail.value) params.set('has_email', filterHasEmail.value);
+      if (filterRun.value) params.set('run_id', filterRun.value);
+      return '/api/export?' + params.toString();
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        if (!data.hunter_configured) hunterWarning.style.display = 'block';
+      } catch (e) {}
+    }
+
+    function formatRunLabel(r) {
+      const started = r.started_at ? r.started_at.replace('T', ' ').slice(0, 19) : '—';
+      return started + ' · ' + (r.saved_count || 0) + ' saved, ' + (r.with_email_count || 0) + ' w/ email';
+    }
+
+    async function loadRuns() {
+      try {
+        const res = await fetch('/api/runs');
+        const data = await res.json();
+        const runs = data.runs || [];
+        const sel = filterRun;
+        const prevVal = sel.value;
+        sel.innerHTML = '<option value="">All runs</option>';
+        runs.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r.id;
+          opt.textContent = formatRunLabel(r);
+          sel.appendChild(opt);
+        });
+        if (prevVal && runs.some(r => r.id === prevVal)) sel.value = prevVal;
+      } catch (e) {}
+    }
+
+    exportBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = buildExportUrl();
+    });
+
+    async function patchContact(id, payload) {
+      const res = await fetch('/api/contacts/' + encodeURIComponent(id), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || res.status);
+      }
+      return res.json();
+    }
+
+    function showInlineEdit(cell, id, field, currentValue, inputType, placeholder, emptyLabel) {
+      const valueSpan = cell.querySelector('.value');
+      const editBtn = cell.querySelector('.edit-link');
+      const input = document.createElement('input');
+      input.type = inputType || 'text';
+      input.placeholder = placeholder || '';
+      input.value = currentValue;
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'btn btn-ghost';
+      saveBtn.textContent = 'Save';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'btn btn-ghost';
+      cancelBtn.textContent = 'Cancel';
+      valueSpan.style.display = 'none';
+      editBtn.style.display = 'none';
+      cell.appendChild(input);
+      cell.appendChild(saveBtn);
+      cell.appendChild(cancelBtn);
+      input.focus();
+
+      function done() {
+        input.remove();
+        saveBtn.remove();
+        cancelBtn.remove();
+        valueSpan.style.display = '';
+        editBtn.style.display = '';
+      }
+
+      saveBtn.addEventListener('click', async function() {
+        const value = input.value.trim();
+        try {
+          await patchContact(id, { [field]: value });
+          valueSpan.innerHTML = value ? escapeHtml(value) : '<span class="empty-cell">—</span>';
+          editBtn.setAttribute('data-value', value);
+          editBtn.setAttribute('data-empty', value ? 'false' : 'true');
+          editBtn.textContent = value ? 'Edit' : emptyLabel;
+          done();
+        } catch (e) {
+          setStatus('Update failed: ' + e.message, 'error');
+        }
+      });
+      cancelBtn.addEventListener('click', done);
+    }
+
+    async function loadContacts() {
+      const params = new URLSearchParams();
+      if (filterJobTitle.value) params.set('job_title', filterJobTitle.value);
+      if (filterCompany.value) params.set('company', filterCompany.value);
+      if (filterHasEmail.value) params.set('has_email', filterHasEmail.value);
+      if (filterRun.value) params.set('run_id', filterRun.value);
+      const res = await fetch('/api/contacts?' + params.toString());
+      const data = await res.json();
+      const contacts = data.contacts || [];
+      if (contacts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No contacts match your filters.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = contacts.map(c => {
+        const added = c.created_at ? c.created_at.replace('T', ' ').slice(0, 19) : '';
+        const email = c.email || '';
+        const jobTitle = c.job_title || '';
+        const company = c.company || '';
+        const emailDisplay = email ? escapeHtml(email) : '<span class="empty-cell">—</span>';
+        const jobTitleDisplay = jobTitle ? escapeHtml(jobTitle) : '<span class="empty-cell">—</span>';
+        const companyDisplay = company ? escapeHtml(company) : '<span class="empty-cell">—</span>';
+        return `<tr data-contact-id="${escapeAttr(String(c.id))}">
+          <td>${escapeHtml(c.name || '')}</td>
+          <td class="editable-cell">
+            <span class="value">${emailDisplay}</span>
+            <button type="button" class="btn btn-ghost edit-link" data-id="${escapeAttr(String(c.id))}" data-value="${escapeAttr(email)}" data-field="email" data-placeholder="Add email" data-empty="${email ? 'false' : 'true'}">${email ? 'Edit' : 'Add email'}</button>
+          </td>
+          <td class="editable-cell">
+            <span class="value">${jobTitleDisplay}</span>
+            <button type="button" class="btn btn-ghost edit-link" data-id="${escapeAttr(String(c.id))}" data-value="${escapeAttr(jobTitle)}" data-field="job_title" data-placeholder="Add job title" data-empty="${jobTitle ? 'false' : 'true'}">${jobTitle ? 'Edit' : 'Add job title'}</button>
+          </td>
+          <td class="editable-cell">
+            <span class="value">${companyDisplay}</span>
+            <button type="button" class="btn btn-ghost edit-link" data-id="${escapeAttr(String(c.id))}" data-value="${escapeAttr(company)}" data-field="company" data-placeholder="Add company" data-empty="${company ? 'false' : 'true'}">${company ? 'Edit' : 'Add company'}</button>
+          </td>
+          <td>${escapeHtml(added)}</td>
+          <td>${c.source_url ? '<a href="' + escapeAttr(c.source_url) + '" target="_blank" rel="noopener">Link</a>' : ''}</td>
+          <td class="actions-cell">
+            <button type="button" class="btn btn-danger delete-btn" data-id="${escapeAttr(String(c.id))}">Delete</button>
+          </td>
+        </tr>`;
+      }).join('');
+      tbody.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          deleteContact(this.getAttribute('data-id'));
+        });
+      });
+      tbody.querySelectorAll('.editable-cell .edit-link').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const cell = this.closest('td');
+          const id = this.getAttribute('data-id');
+          const field = this.getAttribute('data-field');
+          const currentValue = this.getAttribute('data-value') || '';
+          const placeholder = this.getAttribute('data-placeholder') || 'Add';
+          const emptyLabel = this.getAttribute('data-placeholder') || 'Add';
+          const inputType = field === 'email' ? 'email' : 'text';
+          showInlineEdit(cell, id, field, currentValue, inputType, placeholder, emptyLabel);
+        });
+      });
+    }
+
+    async function deleteContact(id) {
+      if (!confirm('Delete this contact?')) return;
+      try {
+        const res = await fetch('/api/contacts/' + encodeURIComponent(id), { method: 'DELETE' });
+        if (res.ok) await loadContacts();
+        else {
+          const data = await res.json().catch(() => ({}));
+          setStatus('Delete failed: ' + (data.error || res.status), 'error');
+        }
+      } catch (e) {
+        setStatus('Delete failed: ' + e.message, 'error');
+      }
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+    function escapeAttr(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    applyFiltersBtn.addEventListener('click', loadContacts);
+    filterRun.addEventListener('change', loadContacts);
+
+    function appendLog(message, level) {
+      runLogEl.classList.remove('hidden');
+      logToggle.textContent = 'Hide log';
+      const line = document.createElement('div');
+      line.className = 'line' + (level === 'error' ? ' error' : '');
+      line.textContent = message;
+      runLogEl.appendChild(line);
+      runLogEl.scrollTop = runLogEl.scrollHeight;
+    }
+
+    runBtn.addEventListener('click', async function() {
+      runBtn.disabled = true;
+      setStatus('Running search…', 'info');
+      runLogEl.innerHTML = '';
+      runLogEl.classList.remove('hidden');
+      logToggle.textContent = 'Hide log';
+      appendLog('Connecting…');
+      const titles = jobTitlesEl.value.trim().split(/\n/).map(t => t.trim()).filter(Boolean);
+      const body = JSON.stringify({
+        job_titles: titles.length ? titles.join('\n') : '',
+        hunter_enabled: hunterEnabledEl.checked
+      });
+      try {
+        const res = await fetch('/api/run/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: body,
+        });
+        if (!res.ok) {
+          appendLog('Request failed: ' + res.status, 'error');
+          setStatus('Error: ' + res.status, 'error');
+          runBtn.disabled = false;
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';
+          for (const part of parts) {
+            const match = part.match(/^data:\s*(.+)$/m);
+            if (!match) continue;
+            try {
+              const event = JSON.parse(match[1].trim());
+              if (event.type === 'progress') {
+                appendLog(event.message || '', event.level);
+              } else if (event.type === 'done') {
+                if (event.errors && event.errors.length) {
+                  setStatus('Done. Saved: ' + event.saved + ', with email: ' + event.with_email + '. Errors: ' + event.errors.join('; '), 'error');
+                } else {
+                  setStatus('Done. Saved ' + event.saved + ' contacts (' + event.with_email + ' with email).', 'success');
+                }
+                await loadRuns();
+                if (event.run_id) filterRun.value = event.run_id;
+                await loadContacts();
+                runBtn.disabled = false;
+                return;
+              }
+            } catch (e) {
+              appendLog('Parse error: ' + e.message, 'error');
+            }
+          }
+        }
+        if (buffer.trim()) {
+          const match = buffer.match(/^data:\s*(.+)$/m);
+          if (match) {
+            try {
+              const event = JSON.parse(match[1].trim());
+              if (event.type === 'done') {
+                if (event.errors && event.errors.length) {
+                  setStatus('Done. Saved: ' + event.saved + ', with email: ' + event.with_email + '. Errors: ' + event.errors.join('; '), 'error');
+                } else {
+                  setStatus('Done. Saved ' + event.saved + ' contacts (' + event.with_email + ' with email).', 'success');
+                }
+                await loadRuns();
+                if (event.run_id) filterRun.value = event.run_id;
+                await loadContacts();
+              }
+            } catch (e) {}
+          }
+        }
+        runBtn.disabled = false;
+      } catch (e) {
+        appendLog('Connection lost or error: ' + e.message, 'error');
+        setStatus('Error: ' + e.message, 'error');
+        runBtn.disabled = false;
+      }
+    });
+
+    loadConfig();
+    loadRuns();
+    loadContacts();
+  </script>
+</body>
+</html>

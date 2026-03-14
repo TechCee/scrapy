@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* Product palette */
+:root {
+  --warm-white: #FBF7F2;
+  --card-bg: #FFFCF8;
+  --ink: #2C1F14;
+  --brown: #6B5040;
+  --tan: #A8917A;
+  --sand: #F5DAC8;
+  --accent: #E8C4A4;
+
+  --background: var(--warm-white);
+  --foreground: var(--ink);
+  --card: var(--card-bg);
+  --border: var(--sand);
+  --muted: var(--brown);
+  --primary: var(--brown);
+  --primary-hover: var(--ink);
+  --sidebar-bg: var(--ink);
+  --sidebar-active: rgba(232, 196, 164, 0.2);
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --shadow-sm: 0 1px 2px 0 rgb(44 31 20 / 0.06);
+  --shadow: 0 2px 8px -2px rgb(44 31 20 / 0.08), 0 4px 12px -4px rgb(44 31 20 / 0.06);
+  --shadow-md: 0 4px 16px -4px rgb(44 31 20 / 0.1), 0 8px 24px -8px rgb(44 31 20 / 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-sans);
+}
+
+/* Focus ring for accessibility */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--brown);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
